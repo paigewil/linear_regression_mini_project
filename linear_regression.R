@@ -23,7 +23,7 @@
 
 getwd() # where am I?
 list.files("dataSets") # files in the dataSets folder
-list.files("linear_regression") # testing for my personal folder
+
 
 
 ## Load the states data
@@ -136,9 +136,67 @@ coef(summary(sat.voting.mod))
 ##   2. Print and interpret the model `summary'
 ##   3. `plot' the model to look for deviations from modeling assumptions
 
+sts.met.en <- subset(states.data, select =c("metro", "energy"))
+plot(sts.met.en)
+
+summary(sts.met.en)
+cor(sts.met.en, use = "na.or.complete") 
+cor(na.omit(sts.met.en)) #same as above
+
+ener.met.mod <-  lm(energy ~ metro,
+                      data = na.omit(states.data))
+summary(ener.met.mod)
+par(mar = c(4, 4, 2, 2), mfrow = c(1, 2))
+plot(ener.met.mod, which = c(1,2))
+
+# Notes: 
+# Looking at the correlation between metro and energy, the correlation is not that
+# strong and negative with a value of -0.3397445. There are also NAs which needed 
+# to be accounted for. The percentage of residents living in metro areas spans from 
+# 20% to 100% in this dataset. Energy consumption goes from 200 to 991 BTU, however, 
+# the high values are outliers (seen clearly in the plot) and the mean is 354.5 BTU.
+# From the plot, we see as the percentage of residents living in metropolitan 
+# areas increases, the energy consumed per capita decreases.
+# There are some outliers with high energy consumption across the different
+# metro values.
+# The summary of the model shows that metro is signficant, but not strongly significant
+# Additionally, the R-squared values are not very high, indicating this model
+# is not very good.
+# From the residuals vs. fitted plot we see that the residuals are skewed slightly 
+# negative with a few very large. This indicates we don't have normally distributed
+# residuals. The Q-Q plot is also not along the line, indicating we don't have
+# homoscedasity.
+
+
 ##   Select one or more additional predictors to add to your model and
 ##   repeat steps 1-3. Is this model significantly better than the model
 ##   with /metro/ as the only predictor?
+
+# toxic:
+ener.met.toxic.mod <-  lm(energy ~ metro + toxic, data = na.omit(states.data))
+anova(ener.met.mod, ener.met.toxic.mod)
+
+# Notes:
+# The p-value returned is statistically significant, also agreed with the ***
+
+# green:
+ener.met.green.mod <-  lm(energy ~ metro + green, data = na.omit(states.data))
+anova(ener.met.mod, ener.met.green.mod)
+
+# Notes:
+# Again, the p-value returned is statistically significant, also agreed with the ***
+
+# From solutions:
+states.en.met.pop.wst <- subset(states.data, select = c("energy", "metro", "pop", "waste"))
+summary(states.en.met.pop.wst)
+plot(states.en.met.pop.wst)
+cor(states.en.met.pop.wst, use = "pairwise")
+mod.en.met.pop.waste <- lm(energy ~ metro + pop + waste, data = states.data)
+summary(mod.en.met.pop.waste)
+mod.en.met <- lm(energy ~ metro, data = states.data)
+anova(mod.en.met, mod.en.met.pop.waste)
+
+
 
 ## Interactions and factors
 ## ══════════════════════════
@@ -204,5 +262,20 @@ coef(summary(lm(csat ~ C(region, contr.helmert),
 ##   1. Add on to the regression equation that you created in exercise 1 by
 ##      generating an interaction term and testing the interaction.
 
+mod.en.met <- lm(energy ~ metro, data = states.data) #model pulled from the solutions
+mod.en.met.den <- lm(energy ~ metro*density, data = states.data) 
+coef(summary(mod.en.met.den))
+
+# Notes:
+# metro:density is not significant indicating there isn't much interaction
+# between the two predictors.
+
+
 ##   2. Try adding region to the model. Are there significant differences
 ##      across the four regions?
+
+mod.en.met.den.reg <- lm(energy ~ metro*density + region, data = states.data)
+coef(summary(mod.en.met.den.reg))
+
+# Notes:
+# Adding region did not add significance. 
